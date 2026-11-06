@@ -18,9 +18,8 @@ function discover(skillPaths) {
   return loadSkills({ cwd: root, agentDir, skillPaths, includeDefaults: false });
 }
 
-test("Pi parses valid portable frontmatter in both selectable sets", () => {
-  const directories = [...manifest.pi.skills, "./variants/vibe/ship-prs"];
-  for (const entry of directories) {
+test("Pi parses valid portable frontmatter in the canonical skill directories", () => {
+  for (const entry of manifest.pi.skills) {
     const file = join(root, entry, "SKILL.md");
     const { frontmatter, body } = parseFrontmatter(readFileSync(file, "utf8"));
     assert.equal(frontmatter.name, basename(dirname(file)));
@@ -54,20 +53,16 @@ test("Pi resolves the local manifest to exactly three collision-free skills", as
   assert.deepEqual(result.skills.map((skill) => skill.name).sort(), expectedNames);
   assert.equal(new Set(result.skills.map((skill) => skill.name)).size, 3);
   const ship = result.skills.find((skill) => skill.name === "ship-prs");
-  assert.equal(ship.filePath, join(root, "variants", "pi", "ship-prs", "SKILL.md"));
+  assert.equal(ship.filePath, join(root, "skills", "ship-prs", "SKILL.md"));
   assert.equal(ship.disableModelInvocation, true);
   assert.ok(result.skills.filter((skill) => skill.name !== "ship-prs").every((skill) => !skill.disableModelInvocation));
 });
 
-test("common skills plus the Vibe variant also discover without a collision", () => {
-  const result = discover([
-    resolve(root, "skills", "handle-pr-reviews"),
-    resolve(root, "skills", "md2slack"),
-    resolve(root, "variants", "vibe", "ship-prs"),
-  ]);
+test("the skills directory discovers the same three skills without variants", () => {
+  const result = discover([resolve(root, "skills")]);
   assert.deepEqual(result.diagnostics, []);
   assert.deepEqual(result.skills.map((skill) => skill.name).sort(), expectedNames);
   assert.equal(new Set(result.skills.map((skill) => skill.name)).size, 3);
   const ship = result.skills.find((skill) => skill.name === "ship-prs");
-  assert.equal(ship.filePath, join(root, "variants", "vibe", "ship-prs", "SKILL.md"));
+  assert.equal(ship.filePath, join(root, "skills", "ship-prs", "SKILL.md"));
 });

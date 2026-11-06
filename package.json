@@ -1,8 +1,8 @@
 {
   "name": "mateogreil-agent-skills",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
-  "description": "Shared agent skills for Pi, Vibe and Claude Code with explicit workflow variants.",
+  "description": "Shared agent skills with a Pi-specific ship-prs workflow.",
   "type": "module",
   "keywords": [
     "pi-package"
@@ -21,7 +21,7 @@
     "skills": [
       "./skills/handle-pr-reviews",
       "./skills/md2slack",
-      "./variants/pi/ship-prs"
+      "./skills/ship-prs"
     ],
     "prompts": [],
     "themes": []

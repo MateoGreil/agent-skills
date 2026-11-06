@@ -1,23 +1,21 @@
 # Agent skills
 
-Shared skills for Pi, Vibe and Claude Code, extracted from MateoGreil's dotfiles. Common skills are `handle-pr-reviews` and `md2slack`; `ship-prs` has two intentionally different workflows:
+Skills extracted from MateoGreil's dotfiles, each under `skills/`:
 
-- **Pi:** confirm direct or spec-first, publish draft PRs within a 300-line budget, follow reviews, offer a retrospective.
-- **Vibe:** grill, approve slices and the subagent-development choice, then build and open each small draft PR before starting the next.
+- `handle-pr-reviews` and `md2slack` can be shared across Pi, Vibe and Claude Code.
+- [`ship-prs`](skills/ship-prs/SKILL.md) keeps only the Pi workflow: confirm direct or spec-first, publish draft PRs within a 300-line budget, follow reviews and offer a retrospective.
 
 ## Pi
 
-Once the repository and `v0.1.0` tag are published:
-
 ```sh
-pi install git:github.com/MateoGreil/agent-skills@v0.1.0
+pi install git:github.com/MateoGreil/agent-skills@v0.1.1
 ```
 
-The explicit `pi.skills` manifest loads exactly three skills: the two common directories and **only** `variants/pi/ship-prs`. It does not recursively load `variants/`, avoiding the two `ship-prs` names colliding. Remove equivalent old local skill copies before enabling the package; restart Pi or use `/reload` afterward.
+The explicit `pi.skills` manifest loads `skills/handle-pr-reviews`, `skills/md2slack` and `skills/ship-prs`. Remove equivalent old local skill copies before enabling the package; restart Pi or use `/reload` afterward. Invoke the Pi workflow explicitly with `/skill:ship-prs`.
 
 ## Vibe and Claude Code
 
-Clone the repository and link individual common skill directories plus **one** chosen `ship-prs` variant into your agent's skill directory. For example, for Vibe:
+Clone the repository and link the two shared skill directories into your agent's skill directory. For example, for Vibe:
 
 ```sh
 repo="$HOME/Projects/agent-skills"
@@ -25,12 +23,13 @@ skills="$HOME/.vibe/skills"
 mkdir -p "$skills"
 ln -s "$repo/skills/handle-pr-reviews" "$skills/handle-pr-reviews"
 ln -s "$repo/skills/md2slack" "$skills/md2slack"
-ln -s "$repo/variants/vibe/ship-prs" "$skills/ship-prs"
 ```
 
-For Claude Code use `~/.claude/skills` as the destination, selecting the variant whose workflow and prerequisites you intend to use. Move conflicting existing skill directories aside yourself; the example does not overwrite them. Link neither the repository root nor the whole `variants/` tree into a recursively scanned skill location.
+For Claude Code use `~/.claude/skills` as the destination. Move conflicting existing skill directories aside yourself; the example does not overwrite them. `ship-prs` targets Pi; the former Vibe-specific workflow is no longer included.
 
-The Matt Pocock skills referenced by the Pi workflow and the skills referenced by the Vibe workflow are **not bundled**. Install the chosen workflow's prerequisites separately. Skill references are resolved by name and advertised/configured location; read their full instructions and preserve their approval gates. Missing skills or required harness capabilities are blockers, not permission to improvise another workflow. PR operations require authenticated `gh` or `tea` as appropriate.
+## ship-prs prerequisites
+
+The Matt Pocock skills referenced by `ship-prs` are **not bundled**. Install its prerequisites separately. Skill references are resolved by name and advertised/configured location; read their full instructions and preserve their approval gates. Missing skills or required harness capabilities are blockers, not permission to improvise another workflow. PR operations require authenticated `gh` or `tea` as appropriate.
 
 ## md2slack requirements
 
@@ -52,7 +51,7 @@ These offline tests cover conversion, API payloads, fallback/error behavior and 
 node --test tests/package.test.mjs
 ```
 
-This resolves the local package without installing it or changing agent settings, validates frontmatter with Pi's parser and confirms three collision-free skills with the Pi variant selected.
+This resolves the local package without installing it or changing agent settings, validates frontmatter with Pi's parser and confirms three collision-free skills under `skills/`.
 
 ## Attribution and licensing
 

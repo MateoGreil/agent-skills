@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_SKILL_DIRS = [
     "./skills/handle-pr-reviews",
     "./skills/md2slack",
-    "./variants/pi/ship-prs",
+    "./skills/ship-prs",
 ]
 EXPECTED_NAMES = ["handle-pr-reviews", "md2slack", "ship-prs"]
 
@@ -40,7 +40,7 @@ class PackageTests(unittest.TestCase):
         self.assertLessEqual(len(fields["description"]), 1024)
         return fields
 
-    def test_manifest_explicitly_selects_common_skills_and_only_pi_variant(self):
+    def test_manifest_explicitly_selects_the_three_canonical_skills(self):
         resources = self.manifest["pi"]
         self.assertEqual(set(resources), {"extensions", "skills", "prompts", "themes"})
         self.assertEqual(resources["skills"], EXPECTED_SKILL_DIRS)
@@ -56,24 +56,22 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(names, EXPECTED_NAMES)
         self.assertEqual(len(names), len(set(names)))
 
-    def test_common_skills_with_only_vibe_variant_are_also_collision_free(self):
-        directories = [ROOT / entry for entry in EXPECTED_SKILL_DIRS[:2]]
-        directories.append(ROOT / "variants" / "vibe" / "ship-prs")
-        names = [self.assert_valid_skill(directory)["name"] for directory in directories]
-        self.assertEqual(names, EXPECTED_NAMES)
-        self.assertEqual(len(names), len(set(names)))
+    def test_all_skills_have_canonical_directories_without_variants(self):
+        self.assertFalse((ROOT / "variants").exists())
+        directories = sorted(path.parent for path in (ROOT / "skills").rglob("SKILL.md"))
+        self.assertEqual(directories, sorted(ROOT / entry for entry in EXPECTED_SKILL_DIRS))
 
-    def test_ship_prs_variants_remain_distinct_and_explicitly_invoked(self):
-        pi = ROOT / "variants" / "pi" / "ship-prs"
-        vibe = ROOT / "variants" / "vibe" / "ship-prs"
-        for directory in (pi, vibe):
-            self.assertEqual(self.read_frontmatter(directory)["disable-model-invocation"], "true")
-        self.assertNotEqual(self.read_frontmatter(pi)["description"], self.read_frontmatter(vibe)["description"])
-        self.assertNotEqual((pi / "SKILL.md").read_text(), (vibe / "SKILL.md").read_text())
+    def test_ship_prs_keeps_the_pi_workflow_and_explicit_invocation(self):
+        directory = ROOT / "skills" / "ship-prs"
+        self.assertEqual(self.read_frontmatter(directory)["disable-model-invocation"], "true")
+        content = (directory / "SKILL.md").read_text()
+        self.assertIn("In Pi, discover the required Matt Pocock skills", content)
+        self.assertIn("## 2A. Direct: `/implement`", content)
+        self.assertIn("## 2B. Spec-first: the full flow", content)
 
     def test_package_metadata_prevents_npm_publication_and_has_no_runtime_dependencies(self):
         self.assertIs(self.manifest["private"], True)
-        self.assertEqual(self.manifest["version"], "0.1.0")
+        self.assertEqual(self.manifest["version"], "0.1.1")
         self.assertEqual(self.manifest["type"], "module")
         self.assertEqual(self.manifest["license"], "UNLICENSED")
         self.assertIn("pi-package", self.manifest["keywords"])
@@ -88,7 +86,7 @@ class PackageTests(unittest.TestCase):
         self.assertTrue((directory / "README.md").is_file())
 
     def test_skill_references_do_not_use_the_original_pi_installation(self):
-        for path in [*ROOT.glob("skills/*/SKILL.md"), *ROOT.glob("variants/*/*/SKILL.md")]:
+        for path in ROOT.glob("skills/*/SKILL.md"):
             self.assertNotIn("~/.pi/agent/", path.read_text(encoding="utf-8"), str(path))
 
 

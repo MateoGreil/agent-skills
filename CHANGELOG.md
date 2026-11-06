@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.1]
+
+- Move the unchanged Pi `ship-prs` workflow to `skills/ship-prs`.
+- Remove the Vibe-specific workflow and the `variants/` layout.
+- Update the manifest, documentation and discovery tests for the canonical skill directories.
+
 ## [0.1.0]
 
 - Extract the shared `handle-pr-reviews` and Linux `md2slack` skills.
